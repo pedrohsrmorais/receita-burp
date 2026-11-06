@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 receita_cookies.json
+out/
+.proxy-ca.crt
+Dockerfile.localtest

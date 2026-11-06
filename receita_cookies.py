@@ -24,9 +24,12 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 URL = "https://servicos.receitafederal.gov.br/servico/autorizacoes/minhas-autorizacoes"
-CHROME = "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome"
-WAIT_SECONDS = 3
-OUT = Path(__file__).with_name("receita_cookies.json")
+# Caminho do Chromium. Vazio (padrao) = deixa o Playwright usar o browser que
+# ele instalou (caso do container oficial do Playwright e de `playwright install`).
+# Defina CHROME_PATH para apontar um binario especifico.
+CHROME = os.environ.get("CHROME_PATH", "") or None
+WAIT_SECONDS = int(os.environ.get("WAIT_SECONDS", "3"))
+OUT = Path(os.environ.get("OUT_PATH") or Path(__file__).with_name("receita_cookies.json"))
 
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36")

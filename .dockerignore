@@ -1,0 +1,7 @@
+.git
+out/
+*.json
+.proxy-ca.crt
+Dockerfile.localtest
+__pycache__/
+*.pyc

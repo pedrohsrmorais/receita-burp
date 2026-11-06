@@ -1,0 +1,16 @@
+services:
+  receita-cookies:
+    build: .
+    image: receita-burp-cookies
+    # Chromium precisa disso em container (sem isso pode quebrar por falta de
+    # /dev/shm e por restricoes de namespace).
+    ipc: host
+    shm_size: "1gb"
+    environment:
+      WAIT_SECONDS: "3"
+      OUT_PATH: /out/receita_cookies.json
+      # Se a sua saida HTTPS passar por um proxy, descomente e ajuste:
+      # PROXY_SERVER: "http://host.docker.internal:8080"
+    volumes:
+      # O JSON gerado aparece na pasta ./out da sua maquina.
+      - ./out:/out
