@@ -5,7 +5,7 @@ TODOS os cookies (inclusive HttpOnly e de terceiros) em JSON.
 
 Roda 100% headless. Pega os cookies por duas vias:
   1) context.cookies()            -> cookies do contexto (ja inclui HttpOnly)
-  2) CDP Storage.getCookies       -> cookie jar inteiro do browser (todos os
+  2) CDP Network.getAllCookies    -> cookie jar inteiro do contexto (todos os
                                      dominios: sso.acesso.gov.br, *.hcaptcha.com...)
 
 Uso:
@@ -109,12 +109,15 @@ def main():
         except Exception as e:
             result["errors"].append(f"context.cookies: {e}")
 
-        # 2) Cookie jar completo via CDP
+        # 2) Cookie jar completo via CDP. Usa Network.getAllCookies (opera sobre
+        #    o contexto da sessao/aba). Storage.getCookies sem browserContextId
+        #    leria o contexto PADRAO do browser, nao o contexto isolado que o
+        #    Playwright cria -> voltaria vazio.
         try:
-            jar = cdp.send("Storage.getCookies")
+            jar = cdp.send("Network.getAllCookies")
             result["cookies_cdp"] = jar.get("cookies", [])
         except Exception as e:
-            result["errors"].append(f"cdp.getCookies: {e}")
+            result["errors"].append(f"cdp.getAllCookies: {e}")
 
         result["finished_at"] = datetime.now(timezone.utc).isoformat()
         context.close()
