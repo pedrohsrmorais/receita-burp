@@ -1,16 +1,42 @@
 services:
+  # Serviço 1: so acessa a pagina e despeja os cookies (headless).
+  #   docker compose run --build --rm receita-cookies
   receita-cookies:
     build: .
-    image: receita-burp-cookies
-    # Chromium precisa disso em container (sem isso pode quebrar por falta de
-    # /dev/shm e por restricoes de namespace).
+    image: receita-burp
     ipc: host
     shm_size: "1gb"
     environment:
       WAIT_SECONDS: "3"
       OUT_PATH: /out/receita_cookies.json
-      # Se a sua saida HTTPS passar por um proxy, descomente e ajuste:
       # PROXY_SERVER: "http://host.docker.internal:8080"
     volumes:
-      # O JSON gerado aparece na pasta ./out da sua maquina.
       - ./out:/out
+    command: ["python3", "receita_cookies.py"]
+
+  # Serviço 2: fluxo "Entrar com gov.br" com navegador VISIVEL (headful).
+  # Em container nao ha tela, entao roda headful sob Xvfb e GRAVA VIDEO:
+  # assista depois em ./out/video/*.webm. Mapa de requisicoes/respostas +
+  # cookies finais vao para ./out/fluxo_govbr.json.
+  #   docker compose up --build fluxo-govbr      (este é o "play")
+  fluxo-govbr:
+    build: .
+    image: receita-burp
+    ipc: host
+    shm_size: "1gb"
+    environment:
+      HEADLESS: "false"        # headful (mais parecido com navegador real)
+      RECORD_VIDEO: "true"     # grava ./out/video/*.webm para voce assistir
+      WAIT_AFTER_CLICK: "5"
+      OUT_DIR: /out
+      # PROXY_SERVER: "http://host.docker.internal:8080"
+    volumes:
+      - ./out:/out
+    # Sobe uma tela virtual (Xvfb) e roda o Chromium headful nela. Usamos Xvfb
+    # direto em vez de `xvfb-run` porque este ultimo trava em alguns containers.
+    command:
+      - bash
+      - -lc
+      - >-
+        Xvfb :99 -screen 0 1366x900x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
+        sleep 2; export DISPLAY=:99; exec python3 fluxo_govbr.py

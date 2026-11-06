@@ -26,6 +26,51 @@ playwright install chromium
 python3 receita_cookies.py
 ```
 
+Ou via Docker (nada a instalar além do Docker):
+
+```bash
+docker compose run --build --rm receita-cookies
+```
+
+## `fluxo_govbr.py`
+
+Abre a página, **aciona o botão "Entrar com gov.br"** e observa, por ~5 s, se:
+
+- apareceu o **desafio visual** do hCaptcha, ou
+- foi direto para `sso.acesso.gov.br` (captcha passivo/invisível).
+
+Durante todo o fluxo **mapeia as requisições e respostas** em ordem cronológica.
+Se chegar ao SSO, extrai o `authorization_id` e o decodifica (é o timestamp do
+servidor em ms, escrito em hexadecimal). No fim, despeja os cookies finais.
+
+Saída em `./out/`:
+
+- `fluxo_govbr.json` — mapa de eventos (`events`), catálogo de botões, veredito
+  (`reached_sso`, `captcha_challenge_visible`, `getcaptcha_requests`),
+  `authorization_id` decodificado e cookies finais.
+- `video/*.webm` — gravação da sessão (dá para assistir mesmo rodando headless
+  ou sob Xvfb).
+
+### Uso
+
+Local, com **janela visível** (o jeito de ver ao vivo):
+
+```bash
+pip install playwright && playwright install chromium
+python3 fluxo_govbr.py
+```
+
+Via Docker (este é o "play") — roda headful sob Xvfb e grava o vídeo em
+`./out/video`, já que o container não tem tela:
+
+```bash
+docker compose up --build fluxo-govbr
+```
+
+Variáveis: `HEADLESS` (padrão `false`), `RECORD_VIDEO` (padrão `true`),
+`WAIT_AFTER_CLICK` (padrão `5`), `START_URL`, `CHROME_PATH`, `PROXY_SERVER`,
+`OUT_DIR`.
+
 ### Proxy
 
 Se a saída HTTPS passar por um proxy, defina `PROXY_SERVER` (ou `HTTPS_PROXY`)
